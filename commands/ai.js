@@ -2,7 +2,7 @@ const https = require('https');
 
 async function askAI(prompt) {
   const body = JSON.stringify({
-    model: 'deepseek/deepseek-chat-v3-0324:free',
+    model: 'meta-llama/llama-3.1-8b-instruct:free',
     messages: [
       {
         role: 'system',
@@ -40,8 +40,9 @@ async function askAI(prompt) {
           try {
             const parsed = JSON.parse(data);
 
-            if (parsed.error)
+            if (parsed.error) {
               return reject(new Error(parsed.error.message));
+            }
 
             resolve(parsed.choices[0].message.content);
           } catch {
