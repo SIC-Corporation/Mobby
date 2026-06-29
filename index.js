@@ -63,7 +63,7 @@ client.on('ready', () => {
   client.user.setActivity('m.help | SIC Corp', { type: 3 });
 });
 
-cclient.on('messageCreate', async (message) => {
+client.on('messageCreate', async (message) => {
   if (message.author.bot) return;
 
   // FIX: Change automod.handleMessage to handleAutoMod
