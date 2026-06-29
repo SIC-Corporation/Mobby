@@ -63,8 +63,12 @@ client.on('ready', () => {
   client.user.setActivity('m.help | SIC Corp', { type: 3 });
 });
 
-// Auto-mod
-const { handleAutoMod } = require('./utils/automod');
+client.on('messageCreate', (message) => {
+  // Run the automod check on every message
+  automod.handleMessage(message, client);
+  
+  // The rest of your command handling code stays below...
+});
 
 client.on('messageCreate', async (message) => {
   if (message.author.bot) return;
