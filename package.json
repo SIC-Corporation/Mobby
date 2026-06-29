@@ -1,7 +1,8 @@
 {
   "name": "mobby",
   "version": "1.0.0",
-  "description": "The official Mobby discord bot powered by Gemini.",
+  "type": "commonjs",
+  "description": "The official Mobby discord bot.",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
@@ -10,9 +11,7 @@
   "keywords": [
     "discord",
     "bot",
-    "mobby",
-    "gemini",
-    "ai"
+    "mobby"
   ],
   "author": "Roy (SIC Corp)",
   "license": "ISC",
