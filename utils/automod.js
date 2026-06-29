@@ -1,64 +1,44 @@
-==> Downloading cache...
-==> It looks like we don't have access to your repo, but we'll try to clone it anyway.
-==> Cloning from https://github.com/SIC-Corporation/Mobby
-==> Checking out commit 01b5a537e22356a7cedd7c9b880b6c583ef9b236 in branch main
-==> Downloaded 30MB in 1s. Extraction took 1s.
-==> Using Node.js version 24.14.1 (default)
-==> Docs on specifying a Node.js version: https://render.com/docs/node-version
-==> Running build command 'npm install'...
-up to date, audited 66 packages in 1s
-13 packages are looking for funding
-  run `npm fund` for details
-4 vulnerabilities (3 moderate, 1 high)
-To address all issues (including breaking changes), run:
-  npm audit fix --force
-Run `npm audit` for details.
-==> Uploading build...
-==> Uploaded in 1.9s. Compression took 0.5s
-==> Build successful 🎉
-==> Deploying...
-==> Setting WEB_CONCURRENCY=1 by default, based on available CPUs in the instance
-==> Running 'node index.js'
-node:internal/modules/cjs/loader:1459
-  throw err;
-  ^
-Error: Cannot find module './utils/automod'
-Require stack:
-- /opt/render/project/src/index.js
-    at Module._resolveFilename (node:internal/modules/cjs/loader:1456:15)
-    at defaultResolveImpl (node:internal/modules/cjs/loader:1066:19)
-    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1071:22)
-    at Module._load (node:internal/modules/cjs/loader:1242:25)
-    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
-    at Module.require (node:internal/modules/cjs/loader:1556:12)
-    at require (node:internal/modules/helpers:152:16)
-    at Object.<anonymous> (/opt/render/project/src/index.js:67:27)
-    at Module._compile (node:internal/modules/cjs/loader:1812:14)
-    at Object..js (node:internal/modules/cjs/loader:1943:10) {
-  code: 'MODULE_NOT_FOUND',
-  requireStack: [ '/opt/render/project/src/index.js' ]
-}
-Node.js v24.14.1
-==> Exited with status 1
-==> Common ways to troubleshoot your deploy: https://render.com/docs/troubleshooting-deploys
-==> Running 'node index.js'
-node:internal/modules/cjs/loader:1459
-  throw err;
-  ^
-Error: Cannot find module './utils/automod'
-Require stack:
-- /opt/render/project/src/index.js
-    at Module._resolveFilename (node:internal/modules/cjs/loader:1456:15)
-    at defaultResolveImpl (node:internal/modules/cjs/loader:1066:19)
-    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1071:22)
-    at Module._load (node:internal/modules/cjs/loader:1242:25)
-    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
-    at Module.require (node:internal/modules/cjs/loader:1556:12)
-    at require (node:internal/modules/helpers:152:16)
-    at Object.<anonymous> (/opt/render/project/src/index.js:67:27)
-    at Module._compile (node:internal/modules/cjs/loader:1812:14)
-    at Object..js (node:internal/modules/cjs/loader:1943:10) {
-  code: 'MODULE_NOT_FOUND',
-  requireStack: [ '/opt/render/project/src/index.js' ]
-}
-Node.js v24.14.1
+// List of words or phrases you want Mobby to block
+const BANNED_WORDS = [
+  'discord.gg/', // Blocks Discord server invites
+  'badword1',     // Add whatever words you want to moderate here
+  'badword2'
+];
+
+const automod = {
+  name: 'automod',
+  
+  // This function will look at every message sent in the server
+  handleMessage(message, client) {
+    // Ignore bots so Mobby doesn't moderate himself or other bots
+    if (message.author.bot) return;
+
+    const contentLower = message.content.toLowerCase();
+
+    // Check if the message contains any banned words
+    const containsBannedWord = BANNED_WORDS.some(word => contentLower.includes(word));
+
+    if (containsBannedWord) {
+      try {
+        // 1. Delete the rule-breaking message
+        message.delete().catch(() => null);
+
+        // 2. Warn the user using your custom SIC embed layout
+        const warnEmbed = client.sicEmbed('#e63946')
+          .setTitle('🛡️ AutoMod Warning')
+          .setDescription(`⚠️ ${message.author}, your message was removed because it contained blocked phrases or links.`);
+
+        message.channel.send({ embeds: [warnEmbed] })
+          .then(msg => {
+            // Automatically delete Mobby's warning after 5 seconds to keep chat clean
+            setTimeout(() => msg.delete().catch(() => null), 5000);
+          });
+          
+      } catch (err) {
+        console.error('Failed to execute AutoMod action:', err);
+      }
+    }
+  }
+};
+
+module.exports = automod;
