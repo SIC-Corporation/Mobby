@@ -1,16 +1,42 @@
-const { GoogleGenAI } = require('@google/genai');
+const https = require('https');
 
-// Initialize the Gemini client once here using the new SDK syntax
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+async function askGroq(prompt) {
+  const body = JSON.stringify({
+    model: 'llama3-8b-8192',
+    messages: [{ role: 'user', content: prompt }],
+    max_tokens: 1024,
+  });
 
-async function askGemini(prompt) {
-  // Call the model using the updated SDK method structure
-const response = await ai.models.generateContent({
-  model: 'gemini-2.0-flash',
-  contents: prompt,
-});
-  
-  return response.text;
+  return new Promise((resolve, reject) => {
+    const req = https.request(
+      {
+        hostname: 'api.groq.com',
+        path: '/openai/v1/chat/completions',
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${process.env.GROQ_API_KEY}`,
+          'Content-Length': Buffer.byteLength(body),
+        },
+      },
+      (res) => {
+        let data = '';
+        res.on('data', d => data += d);
+        res.on('end', () => {
+          try {
+            const parsed = JSON.parse(data);
+            if (parsed.error) return reject(new Error(parsed.error.message));
+            resolve(parsed.choices[0].message.content);
+          } catch {
+            reject(new Error('Failed to parse Groq response'));
+          }
+        });
+      }
+    );
+    req.on('error', reject);
+    req.write(body);
+    req.end();
+  });
 }
 
 const chatCmd = {
@@ -23,7 +49,7 @@ const chatCmd = {
     await message.channel.sendTyping();
 
     try {
-      const response = await askGemini(
+      const response = await askGroq(
         `You are Mobby, a friendly and helpful Discord bot made by SIC Corporation. Keep responses concise and Discord-friendly. User says: ${prompt}`
       );
 
@@ -38,7 +64,7 @@ const chatCmd = {
       message.reply({ embeds: [embed] });
     } catch (err) {
       console.error(err);
-      message.reply({ embeds: [client.sicEmbed('#e63946').setDescription('❌ Gemini AI is unavailable right now.')] });
+      message.reply({ embeds: [client.sicEmbed('#e63946').setDescription('❌ Groq AI is unavailable right now.')] });
     }
   }
 };
@@ -53,7 +79,7 @@ const askCmd = {
     await message.channel.sendTyping();
 
     try {
-      const response = await askGemini(
+      const response = await askGroq(
         `You are Mobby, a knowledgeable Discord bot by SIC Corporation. Answer this question clearly and concisely: ${question}`
       );
 
@@ -68,11 +94,10 @@ const askCmd = {
       message.reply({ embeds: [embed] });
     } catch (err) {
       console.error(err);
-      message.reply({ embeds: [client.sicEmbed('#e63946').setDescription('❌ Gemini AI is unavailable right now.')] });
+      message.reply({ embeds: [client.sicEmbed('#e63946').setDescription('❌ Groq AI is unavailable right now.')] });
     }
   }
 };
 
-// Clean export for your command handler
 module.exports = chatCmd;
 module.exports.extra = [askCmd];
