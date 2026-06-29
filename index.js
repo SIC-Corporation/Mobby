@@ -63,10 +63,11 @@ client.on('ready', () => {
   client.user.setActivity('m.help | SIC Corp', { type: 3 });
 });
 
-client.on('messageCreate', (message) => {
-  // Run the automod check on every message
-  automod.handleMessage(message, client);
-  
+cclient.on('messageCreate', async (message) => {
+  if (message.author.bot) return;
+
+  // FIX: Change automod.handleMessage to handleAutoMod
+  await handleAutoMod(message, client);
   // The rest of your command handling code stays below...
 });
 
