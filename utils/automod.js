@@ -1,44 +1,72 @@
-// List of words or phrases you want Mobby to block
-const BANNED_WORDS = [
-  'discord.gg/', // Blocks Discord server invites
-  'badword1',     // Add whatever words you want to moderate here
-  'badword2'
-];
+const { EmbedBuilder, PermissionFlagsBits } = require('discord.js');
 
-const automod = {
-  name: 'automod',
-  
-  // This function will look at every message sent in the server
-  handleMessage(message, client) {
-    // Ignore bots so Mobby doesn't moderate himself or other bots
-    if (message.author.bot) return;
+const spamMap = new Map(); // userId -> [timestamps]
+const SPAM_LIMIT = 5;
+const SPAM_WINDOW = 5000; // 5 seconds
 
-    const contentLower = message.content.toLowerCase();
+const BAD_LINKS = [/discord\.gg\/\w+/i, /bit\.ly\/\w+/i];
+const CAPS_THRESHOLD = 0.7; // 70% caps = flagged
 
-    // Check if the message contains any banned words
-    const containsBannedWord = BANNED_WORDS.some(word => contentLower.includes(word));
+async function handleAutoMod(message, client) {
+  if (!message.guild) return;
+  const member = message.guild.members.cache.get(message.author.id);
+  if (!member) return;
 
-    if (containsBannedWord) {
-      try {
-        // 1. Delete the rule-breaking message
-        message.delete().catch(() => null);
+  // Skip mods/admins
+  if (member.permissions.has(PermissionFlagsBits.ManageMessages)) return;
 
-        // 2. Warn the user using your custom SIC embed layout
-        const warnEmbed = client.sicEmbed('#e63946')
-          .setTitle('🛡️ AutoMod Warning')
-          .setDescription(`⚠️ ${message.author}, your message was removed because it contained blocked phrases or links.`);
+  const content = message.content;
 
-        message.channel.send({ embeds: [warnEmbed] })
-          .then(msg => {
-            // Automatically delete Mobby's warning after 5 seconds to keep chat clean
-            setTimeout(() => msg.delete().catch(() => null), 5000);
-          });
-          
-      } catch (err) {
-        console.error('Failed to execute AutoMod action:', err);
+  // --- Spam detection ---
+  const now = Date.now();
+  const timestamps = spamMap.get(message.author.id) || [];
+  const recent = timestamps.filter(t => now - t < SPAM_WINDOW);
+  recent.push(now);
+  spamMap.set(message.author.id, recent);
+
+  if (recent.length >= SPAM_LIMIT) {
+    await message.delete().catch(() => {});
+    spamMap.set(message.author.id, []);
+    const embed = new EmbedBuilder()
+      .setColor('#e63946')
+      .setFooter({ text: 'SIC Corporation • Mobby Bot' })
+      .setDescription(`⚠️ <@${message.author.id}> Slow down! No spamming.`);
+    const warn = await message.channel.send({ embeds: [embed] });
+    setTimeout(() => warn.delete().catch(() => {}), 5000);
+    return;
+  }
+
+  // --- Link detection ---
+  for (const pattern of BAD_LINKS) {
+    if (pattern.test(content)) {
+      await message.delete().catch(() => {});
+      const embed = new EmbedBuilder()
+        .setColor('#e63946')
+        .setFooter({ text: 'SIC Corporation • Mobby Bot' })
+        .setDescription(`⚠️ <@${message.author.id}> Unauthorized links are not allowed!`);
+      const warn = await message.channel.send({ embeds: [embed] });
+      setTimeout(() => warn.delete().catch(() => {}), 5000);
+      return;
+    }
+  }
+
+  // --- Caps detection ---
+  if (content.length > 10) {
+    const letters = content.replace(/[^a-zA-Z]/g, '');
+    if (letters.length > 0) {
+      const capsRatio = (content.replace(/[^A-Z]/g, '').length) / letters.length;
+      if (capsRatio >= CAPS_THRESHOLD) {
+        await message.delete().catch(() => {});
+        const embed = new EmbedBuilder()
+          .setColor('#f4a261')
+          .setFooter({ text: 'SIC Corporation • Mobby Bot' })
+          .setDescription(`⚠️ <@${message.author.id}> Please don't use excessive caps!`);
+        const warn = await message.channel.send({ embeds: [embed] });
+        setTimeout(() => warn.delete().catch(() => {}), 5000);
+        return;
       }
     }
   }
-};
+}
 
-module.exports = automod;
+module.exports = { handleAutoMod };
