@@ -1,0 +1,21 @@
+{
+  "name": "mobby",
+  "version": "1.0.0",
+  "description": "The official Mobby discord bot.",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node --watch index.js"
+  },
+  "keywords": [
+    "discord",
+    "bot",
+    "mobby"
+  ],
+  "author": "Roy (SIC Corp)",
+  "license": "ISC",
+  "dependencies": {
+    "discord.js": "^14.17.3",
+    "dotenv": "^16.4.5"
+  }
+}
