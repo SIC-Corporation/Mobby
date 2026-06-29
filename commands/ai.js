@@ -1,10 +1,16 @@
 const { GoogleGenAI } = require('@google/genai');
 
+// Initialize the Gemini client once here using the new SDK syntax
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+
 async function askGemini(prompt) {
-  const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-  const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
-  const result = await model.generateContent(prompt);
-  return result.response.text();
+  // Call the model using the updated SDK method structure
+  const response = await ai.models.generateContent({
+    model: 'gemini-1.5-flash',
+    contents: prompt,
+  });
+  
+  return response.text;
 }
 
 const chatCmd = {
@@ -14,7 +20,7 @@ const chatCmd = {
       return message.reply({ embeds: [client.sicEmbed('#f4a261').setDescription('❌ Usage: `m.chat <message>`')] });
 
     const prompt = args.join(' ');
-    const typing = await message.channel.sendTyping();
+    await message.channel.sendTyping();
 
     try {
       const response = await askGemini(
@@ -61,10 +67,11 @@ const askCmd = {
 
       message.reply({ embeds: [embed] });
     } catch (err) {
+      console.error(err);
       message.reply({ embeds: [client.sicEmbed('#e63946').setDescription('❌ Gemini AI is unavailable right now.')] });
     }
   }
 };
 
-module.exports = chatCmd;
-module.exports.extra = [askCmd];
+// Clean export for your command handler
+module.exports = [chatCmd, askCmd];
