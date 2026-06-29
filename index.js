@@ -13,9 +13,6 @@ const client = new Client({
   ],
 });
 
-// Import the automod script properly
-const automod = require('./utils/automod');
-
 client.commands = new Collection();
 client.PREFIX = 'm.';
 client.OWNER_ID = '1101862076839886971';
@@ -66,12 +63,14 @@ client.on('ready', () => {
   client.user.setActivity('m.help | SIC Corp', { type: 3 });
 });
 
-// Single clean message event listener
+// Auto-mod
+const { handleAutoMod } = require('./utils/automod');
+
 client.on('messageCreate', async (message) => {
   if (message.author.bot) return;
 
-  // Auto-mod runs first (using your automod.js structure)
-  await automod.handleMessage(message, client);
+  // Auto-mod (runs regardless of prefix)
+  await handleAutoMod(message, client);
 
   if (!message.content.startsWith(client.PREFIX)) return;
 
@@ -108,6 +107,3 @@ client.on('messageCreate', async (message) => {
 http.createServer((req, res) => res.end('Mobby is online!')).listen(8080);
 
 client.login(process.env.DISCORD_TOKEN);
-
-const { GoogleGenAI } = require('@google/genai');
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
