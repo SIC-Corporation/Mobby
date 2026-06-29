@@ -1,8 +1,8 @@
 const https = require('https');
 
-async function askOpenAI(prompt) {
+async function askKimi(prompt) {
   const body = JSON.stringify({
-    model: 'gpt-5.5',
+    model: 'kimi-k2.6',
     messages: [
       {
         role: 'system',
@@ -14,18 +14,18 @@ async function askOpenAI(prompt) {
         content: prompt,
       },
     ],
-    max_completion_tokens: 1024,
+    max_tokens: 1024,
   });
 
   return new Promise((resolve, reject) => {
     const req = https.request(
       {
-        hostname: 'api.openai.com',
+        hostname: 'api.moonshot.ai',
         path: '/v1/chat/completions',
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+          'Authorization': `Bearer ${process.env.MOONSHOT_API_KEY}`,
           'Content-Length': Buffer.byteLength(body),
         },
       },
@@ -43,7 +43,7 @@ async function askOpenAI(prompt) {
 
             resolve(parsed.choices[0].message.content);
           } catch {
-            reject(new Error('Failed to parse OpenAI response'));
+            reject(new Error('Failed to parse Kimi response'));
           }
         });
       }
@@ -70,7 +70,7 @@ const chatCmd = {
     await message.channel.sendTyping();
 
     try {
-      const response = await askOpenAI(prompt);
+      const response = await askKimi(prompt);
 
       const embed = client.sicEmbed('#5865F2')
         .setTitle('🤖 Mobby AI')
@@ -93,7 +93,7 @@ const chatCmd = {
       message.reply({
         embeds: [
           client.sicEmbed('#e63946')
-            .setDescription('❌ OpenAI is unavailable right now.')
+            .setDescription('❌ Kimi AI is unavailable right now.')
         ]
       });
     }
@@ -115,7 +115,7 @@ const askCmd = {
     await message.channel.sendTyping();
 
     try {
-      const response = await askOpenAI(question);
+      const response = await askKimi(question);
 
       const embed = client.sicEmbed('#00b4d8')
         .setTitle('❓ Mobby Answers')
@@ -138,7 +138,7 @@ const askCmd = {
       message.reply({
         embeds: [
           client.sicEmbed('#e63946')
-            .setDescription('❌ OpenAI is unavailable right now.')
+            .setDescription('❌ Kimi AI is unavailable right now.')
         ]
       });
     }
