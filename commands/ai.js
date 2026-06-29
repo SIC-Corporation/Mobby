@@ -1,8 +1,8 @@
 const https = require('https');
 
-async function askKimi(prompt) {
+async function askAI(prompt) {
   const body = JSON.stringify({
-    model: 'kimi-k2.6',
+    model: 'deepseek/deepseek-chat-v3-0324:free',
     messages: [
       {
         role: 'system',
@@ -20,12 +20,14 @@ async function askKimi(prompt) {
   return new Promise((resolve, reject) => {
     const req = https.request(
       {
-        hostname: 'api.moonshot.ai',
-        path: '/v1/chat/completions',
+        hostname: 'openrouter.ai',
+        path: '/api/v1/chat/completions',
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${process.env.MOONSHOT_API_KEY}`,
+          'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
+          'HTTP-Referer': 'https://mobby-bot.local',
+          'X-Title': 'Mobby Discord Bot',
           'Content-Length': Buffer.byteLength(body),
         },
       },
@@ -43,7 +45,7 @@ async function askKimi(prompt) {
 
             resolve(parsed.choices[0].message.content);
           } catch {
-            reject(new Error('Failed to parse Kimi response'));
+            reject(new Error('Failed to parse OpenRouter response'));
           }
         });
       }
@@ -70,30 +72,23 @@ const chatCmd = {
     await message.channel.sendTyping();
 
     try {
-      const response = await askKimi(prompt);
+      const response = await askAI(prompt);
 
       const embed = client.sicEmbed('#5865F2')
         .setTitle('🤖 Mobby AI')
         .addFields(
-          {
-            name: '💬 You asked',
-            value: prompt.slice(0, 1024),
-          },
-          {
-            name: '🤖 Mobby says',
-            value: response.slice(0, 1024),
-          }
+          { name: '💬 You asked', value: prompt.slice(0, 1024) },
+          { name: '🤖 Mobby says', value: response.slice(0, 1024) }
         )
         .setTimestamp();
 
       message.reply({ embeds: [embed] });
     } catch (err) {
       console.error(err);
-
       message.reply({
         embeds: [
           client.sicEmbed('#e63946')
-            .setDescription('❌ Kimi AI is unavailable right now.')
+            .setDescription('❌ AI is unavailable right now.')
         ]
       });
     }
@@ -115,30 +110,23 @@ const askCmd = {
     await message.channel.sendTyping();
 
     try {
-      const response = await askKimi(question);
+      const response = await askAI(question);
 
       const embed = client.sicEmbed('#00b4d8')
         .setTitle('❓ Mobby Answers')
         .addFields(
-          {
-            name: '❓ Question',
-            value: question.slice(0, 1024),
-          },
-          {
-            name: '💡 Answer',
-            value: response.slice(0, 1024),
-          }
+          { name: '❓ Question', value: question.slice(0, 1024) },
+          { name: '💡 Answer', value: response.slice(0, 1024) }
         )
         .setTimestamp();
 
       message.reply({ embeds: [embed] });
     } catch (err) {
       console.error(err);
-
       message.reply({
         embeds: [
           client.sicEmbed('#e63946')
-            .setDescription('❌ Kimi AI is unavailable right now.')
+            .setDescription('❌ AI is unavailable right now.')
         ]
       });
     }
