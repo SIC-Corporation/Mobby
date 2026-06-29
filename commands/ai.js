@@ -5,10 +5,10 @@ const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 async function askGemini(prompt) {
   // Call the model using the updated SDK method structure
-  const response = await ai.models.generateContent({
-    model: 'gemini-1.5-flash',
-    contents: prompt,
-  });
+const response = await ai.models.generateContent({
+  model: 'gemini-2.0-flash',
+  contents: prompt,
+});
   
   return response.text;
 }
