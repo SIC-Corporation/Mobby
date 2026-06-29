@@ -2,10 +2,11 @@ const https = require('https');
 
 async function askAI(prompt) {
   const body = JSON.stringify({
-    inputs: prompt,
+    inputs: `You are Mobby, a Discord assistant. Keep replies short and helpful.\n\nUser: ${prompt}\nMobby:`,
     parameters: {
       max_new_tokens: 512,
-      temperature: 0.7
+      temperature: 0.7,
+      return_full_text: false
     }
   });
 
@@ -30,18 +31,23 @@ async function askAI(prompt) {
           try {
             const parsed = JSON.parse(data);
 
-            if (parsed.error)
+            if (parsed.error) {
               return reject(new Error(parsed.error));
+            }
 
-            // HF returns array sometimes
+            // Hugging Face usually returns an array
             const output =
               Array.isArray(parsed)
                 ? parsed[0]?.generated_text
                 : parsed.generated_text;
 
-            resolve(output || 'No response');
-          } catch {
-            reject(new Error('Failed to parse Hugging Face response'));
+            if (!output) {
+              return reject(new Error('Empty AI response'));
+            }
+
+            resolve(output.trim());
+          } catch (err) {
+            reject(new Error('Failed to parse AI response: ' + err.message));
           }
         });
       }
