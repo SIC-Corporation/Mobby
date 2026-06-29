@@ -108,6 +108,6 @@ http.createServer((req, res) => res.end('Mobby is online!')).listen(8080);
 
 client.login(process.env.DISCORD_TOKEN);
 
-import { GoogleGenAI } from '@google/genai';
+const { GoogleGenAI } = require('@google/genai');
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
