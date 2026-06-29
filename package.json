@@ -1,23 +1,14 @@
 {
   "name": "mobby",
   "version": "1.0.0",
-  "type": "commonjs",
-  "description": "The official Mobby discord bot.",
+  "description": "Mobby — SIC Corporation Discord Bot",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js",
-    "dev": "node --watch index.js"
+    "start": "node index.js"
   },
-  "keywords": [
-    "discord",
-    "bot",
-    "mobby"
-  ],
-  "author": "Roy (SIC Corp)",
-  "license": "ISC",
   "dependencies": {
-    "@google/genai": "^1.2.3",
-    "discord.js": "^14.17.3",
-    "dotenv": "^16.4.5"
+    "discord.js": "^14.15.3",
+    "dotenv": "^16.4.5",
+    "@google/generative-ai": "^0.21.0"
   }
 }
