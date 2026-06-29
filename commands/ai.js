@@ -74,4 +74,5 @@ const askCmd = {
 };
 
 // Clean export for your command handler
-module.exports = [chatCmd, askCmd];
+module.exports = chatCmd;
+module.exports.extra = [askCmd];
